@@ -26,10 +26,11 @@ class DetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        model.selectedCall.observe(viewLifecycleOwner, Observer {
-            //call -> binding.detailTextView.text = call.toString()
-            binding.detailTextView.text = it.toString()
-        })
+        model.selectedCall.observe(viewLifecycleOwner, ::displayCallInfo)
+    }
+
+    fun displayCallInfo(call : Call) {
+        binding.detailTextView.text = call.toString()
     }
 
 }
