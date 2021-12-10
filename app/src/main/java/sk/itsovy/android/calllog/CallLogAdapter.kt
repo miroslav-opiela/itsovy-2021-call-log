@@ -1,5 +1,7 @@
 package sk.itsovy.android.calllog
 
+import android.graphics.Color
+import android.provider.CallLog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +18,15 @@ class CallLogAdapter(private val listener: OnNumberClickListener) : ListAdapter<
 
         fun bind(item: Call) {
             textView.text = item.number
+            if (item.type == CallLog.Calls.MISSED_TYPE) {
+                textView.setBackgroundColor(Color.RED)
+            }
+            if (item.type == CallLog.Calls.OUTGOING_TYPE) {
+                textView.setBackgroundColor(Color.BLUE)
+            }
+            if (item.type == CallLog.Calls.INCOMING_TYPE) {
+                textView.setBackgroundColor(Color.GREEN)
+            }
             textView.setOnClickListener {
                 listener.onNumberClick(item)
             }
