@@ -1,11 +1,9 @@
 package sk.itsovy.android.calllog
 
 import android.Manifest
-import android.R
 import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.provider.CallLog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import sk.itsovy.android.calllog.databinding.FragmentMasterBinding
 
@@ -80,13 +79,13 @@ class MasterFragment : Fragment(), OnNumberClickListener {
     }
 
     private fun init() {
-        val loadedCalls = callModel.loadCalls()
-
         val adapter = CallLogAdapter(this)
-        adapter.submitList(loadedCalls)
-
         binding.recyclerView.adapter = adapter
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        callModel.calls.observe(this, {
+            adapter.submitList(it)
+        })
     }
 
     override fun onNumberClick(call: Call) {
