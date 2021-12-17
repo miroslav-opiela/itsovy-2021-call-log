@@ -1,10 +1,17 @@
 package sk.itsovy.android.calllog
 
+import android.Manifest
+import android.R
+import android.app.AlertDialog
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.CallLog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,6 +21,15 @@ class MasterFragment : Fragment(), OnNumberClickListener {
 
     private lateinit var binding: FragmentMasterBinding
     private val model: SharedViewModel by activityViewModels()
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                init()
+            } else {
+                Toast.makeText(requireContext(), "Permission missing", Toast.LENGTH_SHORT).show()
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -27,6 +43,40 @@ class MasterFragment : Fragment(), OnNumberClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.READ_CALL_LOG
+            ) == PackageManager.PERMISSION_GRANTED ->
+                init()
+
+            shouldShowRequestPermissionRationale(Manifest.permission.READ_CALL_LOG) -> {
+                val alertDialog : AlertDialog = requireActivity().let {
+                    val builder = AlertDialog.Builder(it)
+                    builder.apply {
+                        setTitle("Permissions")
+                        setPositiveButton("OK") {
+                            _, _ ->  requestPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG)
+                        }
+                        setNegativeButton("Cancel") {
+                            dialog, _ -> dialog.dismiss()
+                        }
+                    }
+                    builder.create()
+                }
+                alertDialog.show()
+            }
+
+            else -> {
+                requestPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG)
+            }
+
+        }
+
+
+    }
+
+    private fun init() {
         val list = listOf(
             Call("112", CallLog.Calls.MISSED_TYPE),
             Call("0801123456", CallLog.Calls.OUTGOING_TYPE),
