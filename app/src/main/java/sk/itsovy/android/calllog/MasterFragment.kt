@@ -21,6 +21,9 @@ class MasterFragment : Fragment(), OnNumberClickListener {
 
     private lateinit var binding: FragmentMasterBinding
     private val model: SharedViewModel by activityViewModels()
+    private val callModel: CallsViewModel by activityViewModels() {
+        CallsViewModel.CallsViewModelFactory((requireActivity().application as CallApplication).repository)
+    }
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -51,15 +54,15 @@ class MasterFragment : Fragment(), OnNumberClickListener {
                 init()
 
             shouldShowRequestPermissionRationale(Manifest.permission.READ_CALL_LOG) -> {
-                val alertDialog : AlertDialog = requireActivity().let {
+                val alertDialog: AlertDialog = requireActivity().let {
                     val builder = AlertDialog.Builder(it)
                     builder.apply {
                         setTitle("Permissions")
-                        setPositiveButton("OK") {
-                            _, _ ->  requestPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG)
+                        setPositiveButton("OK") { _, _ ->
+                            requestPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG)
                         }
-                        setNegativeButton("Cancel") {
-                            dialog, _ -> dialog.dismiss()
+                        setNegativeButton("Cancel") { dialog, _ ->
+                            dialog.dismiss()
                         }
                     }
                     builder.create()
@@ -77,14 +80,10 @@ class MasterFragment : Fragment(), OnNumberClickListener {
     }
 
     private fun init() {
-        val list = listOf(
-            Call("112", CallLog.Calls.MISSED_TYPE),
-            Call("0801123456", CallLog.Calls.OUTGOING_TYPE),
-            Call("0949335087", CallLog.Calls.INCOMING_TYPE)
-        )
+        val loadedCalls = callModel.loadCalls()
 
         val adapter = CallLogAdapter(this)
-        adapter.submitList(list)
+        adapter.submitList(loadedCalls)
 
         binding.recyclerView.adapter = adapter
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
